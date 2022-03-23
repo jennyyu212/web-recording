@@ -1,0 +1,17 @@
+
+.progressbar {
+      position: absolute;
+      display: flex;
+      justify-content: flex-start;
+      bottom: 10px;
+      width: 80%;
+      height: 5px;
+      background-color: gray;
+
+      &.done {
+            top: 0;
+            width: 0px;
+            height: 5px;
+            background-color: red;
+      }
+}

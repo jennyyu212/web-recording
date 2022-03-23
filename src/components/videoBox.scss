@@ -63,21 +63,23 @@
     
     input[type="range"] {
       -webkit-appearance: none !important;
-      background: rgba(255, 255, 255, 0.2);
+      // background: rgba(255, 255, 255, 0.2);
+      // background: red;
       border-radius: 20px;
       height: 4px;
       width: 350px;
     }
     
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none !important;
-      cursor: pointer;
-      height: 6px;
-    }
+//     input[type="range"]::-webkit-slider-thumb {
+//       -webkit-appearance: none !important;
+//       cursor: pointer;
+//       height: 6px;
+//     }
     
-    input[type="range"]::-moz-range-progress {
-      background: white;
-    }
+//     input[type="range"]::-moz-range-progress {
+//       background: blue;
+//       // background: white;
+//     }
     
     .velocity {
       appearance: none;

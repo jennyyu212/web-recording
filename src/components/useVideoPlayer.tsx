@@ -23,7 +23,7 @@ const useVideoPlayer = (videoElement: any) => {
 
       const handleVideoProgress = (event: any) => {
             const manualChange = Number(event.target.value);
-            // console.log(videoElement)
+            console.log(manualChange)
             videoElement.current.currentTime = (videoElement.current.duration / 100) * manualChange;
             setProgress(manualChange)
       };
