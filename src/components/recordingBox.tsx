@@ -4,9 +4,6 @@ import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { ProgressBar } from "./progressBar"
 import useVideoPlayer from "./useVideoPlayer";
 
-interface RecordingBoxProps {
-
-}
 
 enum RecordingStatus {
       Recording,
@@ -16,13 +13,15 @@ enum RecordingStatus {
 
 interface VideoSegment {
       url: string,
-      duration: number
+      endTime: number
 }
 
+const MAXTIME = 10000;
 
 export function RecordingBox() {
 
       const [recording, setRecording] = useState(false);
+      const recordingTimerRef = useRef<number>(0);
       const [recordingTimer, setRecordingTimer] = useState(0); // unit is 0.01 second
       const [playing, setPlaying] = useState(false);
       const [progress, setProgress] = useState(0);
@@ -33,6 +32,7 @@ export function RecordingBox() {
       // const [videos, setVideos] = useState<string[]>([]);
       const [currentVid, setCurrentVid] = useState<number>(0);
       const recorder = useRef<MediaRecorder | null>(null);
+      
 
       let videoElement: HTMLVideoElement | null = null;
       // let recorder: any;
@@ -86,14 +86,11 @@ export function RecordingBox() {
 
       useEffect(() => {
             setVideoProgressHelper(recordingTimer)
+            recordingTimerRef.current = recordingTimer;
       }, [recordingTimer])
 
-      useEffect(() => {
-            console.log(videos)
-      }, [videos])
-
       const setVideoProgressHelper = (progress: number) => {
-            const newProgress = (progress / 10000) * 100;
+            const newProgress = (progress / MAXTIME) * 100;
             setProgress(newProgress)
       }
       const startShowingStream = async (mediaConstraints = DEFAULT_MEDIA_CONSTRAINTS) => {
@@ -120,7 +117,8 @@ export function RecordingBox() {
                   }
             }
 
-            recorder.current.onstart = () => {
+            recorder.current.onstart = (event: any) => {
+                  console.log(event)
                   console.log("on start")
                   setRecording(true);
             }
@@ -135,8 +133,10 @@ export function RecordingBox() {
                         })
                         const blobUrl = URL.createObjectURL(blob)
 
+                        console.log(recordingTimer)
+
                         // append the current portion to the video pieces
-                        setVideos(videos => [...videos, {url: blobUrl, duration: recordingTimer}])
+                        setVideos(videos => [...videos, {url: blobUrl, endTime: recordingTimer}])
 
                         // reset the temporary chunks
                         chunks = []
@@ -149,20 +149,26 @@ export function RecordingBox() {
             }
 
             // recording paused
-            recorder.current.onpause = () => {
+            recorder.current.onpause = (event: any) => {
+                  console.log(event)
+                  console.log("on pause")
 
                   // create a url for the current portion
                   const blob = new Blob(chunks, {
                         type: 'video/webm'
                   })
                   const blobUrl = URL.createObjectURL(blob)
-                  console.log(blobUrl)
+                  
 
                   // reset the temporary chunks
                   chunks = []
+                  
+                  console.log(blobUrl)
+                  console.log(recordingTimer)
+                  console.log(recordingTimerRef.current)
 
                   // append the current portion to the video pieces
-                  setVideos(videos => [...videos, {url: blobUrl, duration: recordingTimer}])
+                  setVideos(videos => [...videos, {url: blobUrl, endTime: recordingTimerRef.current}])
 
                   // start playing the last portion
                   // playVideoPiece(videos.length - 1)
@@ -170,7 +176,8 @@ export function RecordingBox() {
                   setRecording(false);
             }
 
-            recorder.current.onresume = async () => {
+            recorder.current.onresume = async (event: any) => {
+                  console.log(event)
                   await startShowingStream();
 
                   setRecording(true);
@@ -221,7 +228,7 @@ export function RecordingBox() {
       const clearPrevious = () => {
             // removes the last piece
             const numVideos = videos.length
-            setVideoProgressHelper(videos[numVideos - 2].duration)
+            setVideoProgressHelper(videos[numVideos - 2].endTime)
             setVideos(videos.filter((_, idx) => idx !== numVideos - 1));
             
             // play the previous piece if there is one
@@ -249,6 +256,10 @@ export function RecordingBox() {
             }
       };
 
+      useEffect(() => {
+            console.log(videos.map((elt) => elt.endTime / MAXTIME * 100))
+      }, [videos])
+
       return (
             <div className="container">
                   <div className="video-wrapper">
@@ -270,7 +281,7 @@ export function RecordingBox() {
                                           )}
                                     </button>
                               </div>
-                              <ProgressBar progress={progress} />
+                              <ProgressBar progress={progress} marks={videos.map((elt) => elt.endTime / MAXTIME * 100)}/>
                               {/* <select
                                           className="velocity"
                                           value={speed}
