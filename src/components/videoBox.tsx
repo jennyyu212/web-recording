@@ -1,5 +1,4 @@
 import React, { useRef } from "react";
-import "./videoBox.scss"
 
 // import video from "./assets/video.mp4";
 import useVideoPlayer from "./useVideoPlayer";

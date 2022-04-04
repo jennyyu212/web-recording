@@ -1,26 +1,20 @@
-body, div {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-}
+// body, div {
+//   display: flex;
+//   flex-wrap: wrap;
+//   align-items: center;
+//   justify-content: center;
+// }
 
 video {
   flex: 100%;
-  max-width: 600px;
+  width: 100%;
   min-height: 400px;
   height: auto;
   display: block;
   background-color: black;  
-  margin-bottom: 10px;
-}
-
-div {
-  flex-basis: 100%;
 }
 
 button { margin: 0 .5rem }
-
 
 .container {
   display: flex;
@@ -29,16 +23,9 @@ button { margin: 0 .5rem }
   height: 100vh;
 }
 
-h1 {
-  color: white;
-}
-
-video {
-  width: 100%;
-}
-
 .video-wrapper {
-  width: 100%;
+  max-width: 600px;
+  // width: 100%;
   max-width: 700px;
   position: relative;
   display: flex;
@@ -48,7 +35,9 @@ video {
 }
 
 .video-wrapper:hover .controls {
+  bottom: 30px;
   transform: translateY(0%);
+  opacity: 100%;
 }
 
 .controls {
@@ -56,19 +45,20 @@ video {
   align-items: center;
   justify-content: space-evenly;
   position: absolute;
-  bottom: 30px;
   padding: 14px;
   width: 100%;
   max-width: 500px;
   flex-wrap: wrap;
   background: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  // box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.1);
+  // backdrop-filter: blur(4px);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  transform: translateY(150%);
+  // transform: translateY(150%);
   transition: all 0.3s ease-in-out;
+  // opacity: 0%;
+  bottom: 30px;
+  // bottom: -150px;
 }
 
 .actions button {
@@ -124,3 +114,123 @@ input[type="range"]::-moz-range-progress {
   color: white;
   font-size: 20px;
 }
+
+.recording-sign {
+  height: 20px;
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  top: 0; 
+  right: 0; 
+  align-items: center;
+  justify-content: center;
+
+  .timer {
+    font-size: 15px;
+    color: white;
+    margin: 0;
+  }
+
+  .dot {
+    height: 15px;
+    width: 15px;
+    margin: 5px;
+    background-color: red;
+    border-radius: 50%;
+    display: inline-block;
+  }
+}
+
+.controls-inner-container {
+  display: flex;
+  flex-direction: row;
+
+}
+
+.record-button-wrapper {
+  width: 35px;
+	height: 35px;
+	font-size: 0;
+	background-color: grey;
+	border: 0px;
+	border-radius: 35px;
+	margin: 10px;
+
+  .record-button {
+    position: relative;
+    background-color: red;
+    border: 0px;
+    border-radius: 50%;
+    height: 28px;
+    width: 28px;
+    top: 50%;
+    left: 50%;
+    margin: -14px 0px 0px -14px;
+  
+    &:hover {
+      width: 30px;
+      height: 30px;
+      margin: -15px 0px 0px -15px;
+    }
+  }
+
+  .stop-button{
+    position: relative;
+    background-color: red;
+    border: 0px;
+    border-radius: 10%;
+    height: 18px;
+    width: 18px;
+    top: 50%;
+    left: 50%;
+    margin: -9px 0px 0px -9px;
+  
+    // &:hover {
+    //   width: 40px;
+    //   height: 40px
+    // }
+  }
+
+}
+
+.clear-previous-wrapper {
+  display: flex;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  
+  .arrow-wrapper {
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+
+    .triangle {
+      width: 0; 
+      height: 0; 
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent; 
+      border-right: 13px solid grey; 
+    }
+  
+    .rectangle {
+      width: 25px;
+      height: 20px;
+      background-color: grey;
+    }
+  }
+  
+  .cross {
+    position: relative;
+    margin-left: 5px;
+
+    &:after {
+      display: inline-block;
+      content: "\00d7";
+    }
+  }
+}
+
+
+
+

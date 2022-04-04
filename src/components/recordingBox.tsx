@@ -16,7 +16,7 @@ interface VideoSegment {
       endTime: number
 }
 
-const MAXTIME = 10000;
+const MAXTIME = 1000;
 
 export function RecordingBox() {
 
@@ -228,7 +228,8 @@ export function RecordingBox() {
       const clearPrevious = () => {
             // removes the last piece
             const numVideos = videos.length
-            setVideoProgressHelper(videos[numVideos - 2].endTime)
+            setRecordingTimer(numVideos == 1 ? 0 : videos[numVideos - 2].endTime)
+            setVideoProgressHelper(numVideos == 1 ? 0 : videos[numVideos - 2].endTime)
             setVideos(videos.filter((_, idx) => idx !== numVideos - 1));
             
             // play the previous piece if there is one
@@ -256,6 +257,13 @@ export function RecordingBox() {
             }
       };
 
+      const millisecondToMinuteSecond = (milliseconds: number) => {
+            const minutes = Math.floor(( milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+            return minutes + " : " + seconds;
+      }
+
+
       useEffect(() => {
             console.log(videos.map((elt) => elt.endTime / MAXTIME * 100))
       }, [videos])
@@ -268,30 +276,32 @@ export function RecordingBox() {
                               muted
                               onTimeUpdate={handleOnTimeUpdate}
                         />
+                        <div className="recording-sign">
+                              <span className="dot"/>
+                              <p className="timer">{millisecondToMinuteSecond(recordingTimer * 10)}</p>
+                        </div>
                         <div className="controls">
-                              <div className="actions">
-                                    <button
-                                          onClick={() => setPlaying(!playing)}>
-                                          {!playing ? (
-                                                <p>play</p>
-                                                // <i className="bx bx-play"></i>
-                                          ) : (
-                                                <p>pause</p>
-                                                // <i className="bx bx-pause"></i>
-                                          )}
-                                    </button>
+                              
+                              <div className="controls-inner-container">
+                                    <div className="record-button-wrapper">
+                                          {recording ? 
+                                          <button className="stop-button" onClick={pause}/> :
+                                          <button className="record-button" onClick={startOrResume}/>
+                                          }
+                                    </div>
+                                    {videos.length > 0 ? 
+                                    
+                                    <div className="clear-previous-wrapper" onClick={clearPrevious}>
+                                          <div className="arrow-wrapper">
+                                                <div className="triangle"/>
+                                                <div className="rectangle"/>
+                                          </div>
+                                          <div className="cross"/>
+                                    </div> : <></>}
+                                    
                               </div>
+                              
                               <ProgressBar progress={progress} marks={videos.map((elt) => elt.endTime / MAXTIME * 100)}/>
-                              {/* <select
-                                          className="velocity"
-                                          value={speed}
-                                          onChange={(e) => handleVideoSpeed(e)}
-                                    >
-                                          <option value="0.50">0.50x</option>
-                                          <option value="1">1x</option>
-                                          <option value="1.25">1.25x</option>
-                                          <option value="2">2x</option>
-                                    </select> */}
 
                               {/* <button className="mute-btn" onClick={() => setMuted(!muted)}>
                                           {!muted ? (
@@ -302,16 +312,13 @@ export function RecordingBox() {
                                     </button>  */}
                         </div>
 
-                        <div>
+                        {/* <div className="buttons">
                               <button onClick={startOrResume}>Record</button>
                               <button onClick={stop}>Stop</button>
                               <button onClick={pause}>Pause</button>
                               <button onClick={clearPrevious}>Clear Previous</button>
-                        </div>
+                        </div> */}
 
-                  </div>
-                  <div>
-                        <p>timer: {recordingTimer}</p>
                   </div>
             </div>)
 }
