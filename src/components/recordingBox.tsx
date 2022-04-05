@@ -15,7 +15,7 @@ enum RecordingStatus {
 }
 
 interface VideoSegment {
-      url: string,
+      chunks: any[],
       endTime: number
 }
 
@@ -35,10 +35,11 @@ export function RecordingBox() {
       // const [videos, setVideos] = useState<string[]>([]);
       const [currentVid, setCurrentVid] = useState<number>(0);
       const recorder = useRef<MediaRecorder | null>(null);
-      
+      const videoElementRef = useRef<HTMLVideoElement | null>(null);
 
-      let videoElement: HTMLVideoElement | null = null;
-      // let recorder: any;
+      const [finished, setFinished] = useState<Boolean>(false)
+
+      
 
       const DEFAULT_MEDIA_CONSTRAINTS = {
             video: {
@@ -53,6 +54,31 @@ export function RecordingBox() {
       }
 
       useEffect(() => {
+
+            if (finished) {
+                  let allVideoChunks : any = []
+                  console.log(videos)
+                  videos.forEach((vid) => {
+                        console.log(vid.chunks)
+                        allVideoChunks = allVideoChunks.concat(vid.chunks)
+                  })
+
+                  console.log(allVideoChunks)
+
+                  const blob = new Blob(allVideoChunks, {
+                              type: 'video/webm'
+                  })
+                  const blobUrl = URL.createObjectURL(blob)
+
+                  videoElementRef.current!.srcObject = null
+                  videoElementRef.current!.src = blobUrl
+                  videoElementRef.current!.muted = false
+            }
+            
+
+      }, [finished])
+
+      useEffect(() => {
             // check if the browser supports media devices on first load
             if (!navigator.mediaDevices) {
                   console.log('This browser does not support getUserMedia.')
@@ -61,19 +87,20 @@ export function RecordingBox() {
 
       useEffect(() => {
             // get access to the video element on every render
-            videoElement = document.getElementById('video') as HTMLVideoElement;
+            // videoElement = document.getElementById('video') as HTMLVideoElement;
+            videoElementRef.current = document.getElementById('video') as HTMLVideoElement;
       })
 
-      useEffect(() => {
-            if (playing) {
-                  videoElement!.srcObject = null
-                  videoElement!.src = videos[currentVid].url
-                  videoElement!.muted = false
-                  videoElement!.play()
-            } else {
-                  videoElement!.pause();
-            }
-      }, [playing, videoElement]);
+      // useEffect(() => {
+      //       if (playing) {
+      //             videoElement!.srcObject = null
+      //             // videoElement!.src = videos[currentVid].url
+      //             videoElement!.muted = false
+      //             videoElement!.play()
+      //       } else {
+      //             videoElement!.pause();
+      //       }
+      // }, [playing, videoElement]);
 
       useEffect(() => {
             let interval: any = null;
@@ -99,9 +126,9 @@ export function RecordingBox() {
       const startShowingStream = async (mediaConstraints = DEFAULT_MEDIA_CONSTRAINTS) => {
             const stream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
 
-            videoElement!.src = ""
-            videoElement!.srcObject = stream
-            videoElement!.muted = true
+            videoElementRef.current!.src = ""
+            videoElementRef.current!.srcObject = stream
+            videoElementRef.current!.muted = true
 
             return stream
       }
@@ -127,54 +154,31 @@ export function RecordingBox() {
             }
 
             recorder.current.onstop = () => {
-                  console.log("on stop")
                   // if we have a last portion
                   if (chunks.length > 1) {
-                        // create a url for the last portion
-                        const blob = new Blob(chunks, {
-                              type: 'video/webm'
-                        })
-                        const blobUrl = URL.createObjectURL(blob)
-
                         // append the current portion to the video pieces
-                        setVideos(videos => [...videos, {url: blobUrl, endTime: recordingTimerRef.current}])
-
-                        // reset the temporary chunks
-                        chunks = []
+                        setVideos(videos => [...videos, {chunks: chunks, endTime: recordingTimerRef.current}]) 
                   }
 
+                  // reset the temporary chunks
+                  chunks = []
                   setRecording(false);
-
-                  // start playing the last portion
-                  // playFromStart()
+                  setFinished(true);
             }
 
             // recording paused
             recorder.current.onpause = (event: any) => {
-                  console.log("on pause")
+                  // append the current portion to the video pieces
+                  setVideos(videos => [...videos, {chunks: chunks, endTime: recordingTimerRef.current}])
 
-                  // create a url for the current portion
-                  const blob = new Blob(chunks, {
-                        type: 'video/webm'
-                  })
-                  const blobUrl = URL.createObjectURL(blob)
-                  
                   // reset the temporary chunks
                   chunks = []
-
-                  // append the current portion to the video pieces
-                  setVideos(videos => [...videos, {url: blobUrl, endTime: recordingTimerRef.current}])
-
-                  // start playing the last portion
-                  // playVideoPiece(videos.length - 1)
-
                   setRecording(false);
             }
 
             recorder.current.onresume = async (event: any) => {
                   console.log(event)
                   await startShowingStream();
-
                   setRecording(true);
             }
 
@@ -207,19 +211,19 @@ export function RecordingBox() {
             }
       }
 
-      const playVideoPiece = (idx: number) => {
-            videoElement!.srcObject = null
-            videoElement!.src = videos[currentVid].url
-            videoElement!.muted = false
-      }
+      // const playVideoPiece = (idx: number) => {
+      //       videoElement!.srcObject = null
+      //       // videoElement!.src = videos[currentVid].url
+      //       videoElement!.muted = false
+      // }
 
-      const playFromStart = () => {
-            playVideoPiece(0)
-            videoElement!.onended = () => {
-                  currentVid >= videos.length - 1 ? setCurrentVid(0) : setCurrentVid(currentVid + 1)
-                  playVideoPiece(currentVid)
-            }
-      }
+      // const playFromStart = () => {
+      //       playVideoPiece(0)
+      //       videoElement!.onended = () => {
+      //             currentVid >= videos.length - 1 ? setCurrentVid(0) : setCurrentVid(currentVid + 1)
+      //             playVideoPiece(currentVid)
+      //       }
+      // }
 
       const clearPrevious = () => {
             // removes the last piece
@@ -249,7 +253,7 @@ export function RecordingBox() {
 
       const handleOnTimeUpdate = () => {
             if (playing) {
-                  setVideoProgressHelper(videoElement!.currentTime)
+                  setVideoProgressHelper(videoElementRef.current!.currentTime)
             }
       };
 
@@ -267,6 +271,7 @@ export function RecordingBox() {
 
       useEffect(() => {
             console.log(videos.map((elt) => elt.endTime / MAXTIME * 100))
+            console.log(videos)
       }, [videos])
 
       return (
