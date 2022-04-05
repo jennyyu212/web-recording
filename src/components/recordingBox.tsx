@@ -3,6 +3,9 @@ import "./recordingBox.scss";
 import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { ProgressBar } from "./progressBar"
 import useVideoPlayer from "./useVideoPlayer";
+import { MdBackspace } from 'react-icons/md';
+import { FaCheckCircle } from 'react-icons/fa';
+import { IconContext } from "react-icons";
 
 
 enum RecordingStatus {
@@ -126,17 +129,15 @@ export function RecordingBox() {
             recorder.current.onstop = () => {
                   console.log("on stop")
                   // if we have a last portion
-                  if (chunks.length !== 0) {
+                  if (chunks.length > 1) {
                         // create a url for the last portion
                         const blob = new Blob(chunks, {
                               type: 'video/webm'
                         })
                         const blobUrl = URL.createObjectURL(blob)
 
-                        console.log(recordingTimer)
-
                         // append the current portion to the video pieces
-                        setVideos(videos => [...videos, {url: blobUrl, endTime: recordingTimer}])
+                        setVideos(videos => [...videos, {url: blobUrl, endTime: recordingTimerRef.current}])
 
                         // reset the temporary chunks
                         chunks = []
@@ -150,7 +151,6 @@ export function RecordingBox() {
 
             // recording paused
             recorder.current.onpause = (event: any) => {
-                  console.log(event)
                   console.log("on pause")
 
                   // create a url for the current portion
@@ -159,13 +159,8 @@ export function RecordingBox() {
                   })
                   const blobUrl = URL.createObjectURL(blob)
                   
-
                   // reset the temporary chunks
                   chunks = []
-                  
-                  console.log(blobUrl)
-                  console.log(recordingTimer)
-                  console.log(recordingTimerRef.current)
 
                   // append the current portion to the video pieces
                   setVideos(videos => [...videos, {url: blobUrl, endTime: recordingTimerRef.current}])
@@ -190,7 +185,8 @@ export function RecordingBox() {
       const stop = () => {
             if (recorder.current) {
                   if (recorder.current.state !== "inactive") {
-                        recorder.current.stream.getTracks().forEach((track: any) => track.stop())
+                        recorder.current.stop();
+                        // recorder.current.stream.getTracks().forEach((track: any) => track.stop())
                   }
             }
       }
@@ -258,10 +254,15 @@ export function RecordingBox() {
       };
 
       const millisecondToMinuteSecond = (milliseconds: number) => {
+            const toTwoDigit = (digit: number) => {
+                  return String(digit).length == 1 ? "0" + digit : digit
+            }
             const minutes = Math.floor(( milliseconds % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
-            return minutes + " : " + seconds;
+            return toTwoDigit(minutes) + " : " + toTwoDigit(seconds);
       }
+
+      
 
 
       useEffect(() => {
@@ -290,14 +291,17 @@ export function RecordingBox() {
                                           }
                                     </div>
                                     {videos.length > 0 ? 
+
+                                    <div className="video-edit-wrapper">
+                                          <IconContext.Provider value={{ color: "grey", className: "video-edit-buttons" }}>
+                                                <MdBackspace onClick={clearPrevious}/>
+                                          </IconContext.Provider>
+                                          <IconContext.Provider value={{ color: "#cc1c08", className: "video-edit-buttons" }}>
+                                                <FaCheckCircle onClick={stop}/>
+                                          </IconContext.Provider>
+                                    </div>
                                     
-                                    <div className="clear-previous-wrapper" onClick={clearPrevious}>
-                                          <div className="arrow-wrapper">
-                                                <div className="triangle"/>
-                                                <div className="rectangle"/>
-                                          </div>
-                                          <div className="cross"/>
-                                    </div> : <></>}
+                                     : <></>}
                                     
                               </div>
                               
@@ -311,13 +315,6 @@ export function RecordingBox() {
                                           )}
                                     </button>  */}
                         </div>
-
-                        {/* <div className="buttons">
-                              <button onClick={startOrResume}>Record</button>
-                              <button onClick={stop}>Stop</button>
-                              <button onClick={pause}>Pause</button>
-                              <button onClick={clearPrevious}>Clear Previous</button>
-                        </div> */}
 
                   </div>
             </div>)
