@@ -148,7 +148,6 @@ export function RecordingBox() {
             }
 
             recorder.current.onstart = (event: any) => {
-                  console.log(event)
                   console.log("on start")
                   setRecording(true);
             }
@@ -169,6 +168,7 @@ export function RecordingBox() {
             // recording paused
             recorder.current.onpause = (event: any) => {
                   // append the current portion to the video pieces
+                  console.log(chunks)
                   setVideos(videos => [...videos, {chunks: chunks, endTime: recordingTimerRef.current}])
 
                   // reset the temporary chunks
@@ -211,32 +211,27 @@ export function RecordingBox() {
             }
       }
 
-      // const playVideoPiece = (idx: number) => {
-      //       videoElement!.srcObject = null
-      //       // videoElement!.src = videos[currentVid].url
-      //       videoElement!.muted = false
-      // }
+      const playSegment = (idx: number) => {
+            console.log(idx)
+            let currentChunks = videos[idx].chunks
+            console.log(currentChunks)
 
-      // const playFromStart = () => {
-      //       playVideoPiece(0)
-      //       videoElement!.onended = () => {
-      //             currentVid >= videos.length - 1 ? setCurrentVid(0) : setCurrentVid(currentVid + 1)
-      //             playVideoPiece(currentVid)
-      //       }
-      // }
+            const blob = new Blob(currentChunks, {
+                  type: 'video/webm'
+            })
+            const blobUrl = URL.createObjectURL(blob)
+            console.log(blobUrl)
+
+            videoElementRef.current!.srcObject = null
+            videoElementRef.current!.src = blobUrl
+            videoElementRef.current!.muted = false
+      }
 
       const clearPrevious = () => {
-            // removes the last piece
             const numVideos = videos.length
             setRecordingTimer(numVideos == 1 ? 0 : videos[numVideos - 2].endTime)
             setVideoProgressHelper(numVideos == 1 ? 0 : videos[numVideos - 2].endTime)
             setVideos(videos.filter((_, idx) => idx !== numVideos - 1));
-            
-            // play the previous piece if there is one
-            // if (videos.length > 0) {
-            //       playVideoPiece(videos.length - 1)
-            // }
-
       }
 
       // const handleVideoProgress = (event: any) => {
@@ -295,7 +290,7 @@ export function RecordingBox() {
                                           <button className="record-button" onClick={startOrResume}/>
                                           }
                                     </div>
-                                    {videos.length > 0 ? 
+                                    {!recording && videos.length > 0 ? 
 
                                     <div className="video-edit-wrapper">
                                           <IconContext.Provider value={{ color: "grey", className: "video-edit-buttons" }}>
@@ -310,7 +305,11 @@ export function RecordingBox() {
                                     
                               </div>
                               
-                              <ProgressBar progress={progress} marks={videos.map((elt) => elt.endTime / MAXTIME * 100)}/>
+                              <ProgressBar 
+                                    progress={progress} 
+                                    marks={videos.map((elt) => elt.endTime / MAXTIME * 100)}
+                                    playSegment={playSegment}
+                              />
 
                               {/* <button className="mute-btn" onClick={() => setMuted(!muted)}>
                                           {!muted ? (

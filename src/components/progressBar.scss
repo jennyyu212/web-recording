@@ -13,11 +13,14 @@
             width: 0px;
             height: 5px;
             background-color: red;
+            z-index: 2;
       }
 
       &.mark {
             top: 0;
             background-color: transparent;
             border-right: 2px solid white;
+            z-index: 3;
+            pointer-events: none; 
       }
 }
